@@ -1,5 +1,0 @@
-{
-    "geo-cluster-m02": {"carbon": 500, "cost": 0.15, "latency": 20},
-    "geo-cluster-m03": {"carbon": 200, "cost": 0.20, "latency": 150},
-    "geo-cluster-m04": {"carbon": 50,  "cost": 0.10, "latency": 300}
-}

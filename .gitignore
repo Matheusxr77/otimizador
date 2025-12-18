@@ -2,3 +2,4 @@ venv-linux/
 venv-linux/**
 __pycache__/
 __pycache__/**
+*.csv
