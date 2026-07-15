@@ -22,6 +22,7 @@ plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['figure.dpi'] = 100
 plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['savefig.bbox'] = 'tight'
+plt.rcParams['svg.fonttype'] = 'none'
 
 # Paleta de cores consistente
 COLORS = {
@@ -79,6 +80,17 @@ def calculate_confidence_interval(data: pd.Series, confidence: float = 0.95):
     return mean, ci, ci
 
 
+FIGURE_FORMAT = "svg"
+DEFAULT_OUTPUT_DIR = "docs/img"
+
+
+def save_figure(output_dir: str, filename: str):
+    output_path = Path(output_dir) / f"{filename}.{FIGURE_FORMAT}"
+    plt.savefig(output_path, format=FIGURE_FORMAT)
+    print(f"   ✅ Saved: {output_path}")
+    plt.close()
+
+
 def plot_modes_comparison_metrics(df: pd.DataFrame, output_dir: str):
     """
     Gráfico comparativo de todas as métricas por modo operacional
@@ -93,11 +105,11 @@ def plot_modes_comparison_metrics(df: pd.DataFrame, output_dir: str):
     
     # Métricas para comparar
     metrics = {
-        'Latência (ms)': 'region_latency_ms',
-        'Energia Renovável (%)': 'region_renewable_pct',
-        'Carbono (gCO2/kWh)': 'region_carbon_intensity',
-        'Custo ($/kWh)': 'region_cost_per_kwh',
-        'Score Final': 'score_final'
+        'Latency (ms)': 'region_latency_ms',
+        'Renewable Energy (%)': 'region_renewable_pct',
+        'Carbon (gCO2/kWh)': 'region_carbon_intensity',
+        'Cost ($/kWh)': 'region_cost_per_kwh',
+        'Final Score': 'score_final'
     }
     
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
@@ -128,7 +140,7 @@ def plot_modes_comparison_metrics(df: pd.DataFrame, output_dir: str):
             patch.set_alpha(0.7)
         
         ax.set_title(metric_name, fontsize=14, fontweight='bold')
-        ax.set_ylabel('Valor', fontsize=11)
+        ax.set_ylabel('Value', fontsize=11)
         ax.grid(True, alpha=0.3)
         
         # Adiciona valores médios
@@ -140,14 +152,11 @@ def plot_modes_comparison_metrics(df: pd.DataFrame, output_dir: str):
     # Remove o último subplot vazio
     fig.delaxes(axes[-1])
     
-    plt.suptitle('Comparação de Métricas por Modo Operacional', 
+    plt.suptitle('Metric Comparison by Operational Mode', 
                  fontsize=16, fontweight='bold', y=0.995)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'comparison_modes_metrics_boxplot.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'comparison_modes_metrics_boxplot')
 
 
 def plot_modes_comparison_with_ci(df: pd.DataFrame, output_dir: str):
@@ -159,10 +168,10 @@ def plot_modes_comparison_with_ci(df: pd.DataFrame, output_dir: str):
     df_success = df[df['allocation_success'] == True].copy()
     
     metrics = {
-        'Latência (ms)': 'region_latency_ms',
-        'Renovável (%)': 'region_renewable_pct',
-        'Carbono (gCO2)': 'region_carbon_intensity',
-        'Custo ($/kWh)': 'region_cost_per_kwh'
+        'Latency (ms)': 'region_latency_ms',
+        'Renewable (%)': 'region_renewable_pct',
+        'Carbon (gCO2)': 'region_carbon_intensity',
+        'Cost ($/kWh)': 'region_cost_per_kwh'
     }
     
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
@@ -201,7 +210,7 @@ def plot_modes_comparison_with_ci(df: pd.DataFrame, output_dir: str):
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, fontsize=10)
         ax.set_title(metric_name, fontsize=14, fontweight='bold')
-        ax.set_ylabel('Valor Médio', fontsize=11)
+        ax.set_ylabel('Mean Value', fontsize=11)
         ax.grid(True, alpha=0.3, axis='y')
         
         # Adiciona valores nas barras
@@ -211,14 +220,11 @@ def plot_modes_comparison_with_ci(df: pd.DataFrame, output_dir: str):
                    f'{mean:.2f}',
                    ha='center', va='bottom', fontsize=9, fontweight='bold')
     
-    plt.suptitle('Comparação de Modos com Intervalos de Confiança (95%)',
+    plt.suptitle('Mode Comparison with Confidence Intervals (95%)',
                  fontsize=16, fontweight='bold', y=0.995)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'comparison_modes_confidence_intervals.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'comparison_modes_confidence_intervals')
 
 
 def plot_scores_by_mode(df: pd.DataFrame, output_dir: str):
@@ -231,7 +237,7 @@ def plot_scores_by_mode(df: pd.DataFrame, output_dir: str):
     
     # Scores para analisar
     score_cols = ['score_latency', 'score_carbon', 'score_cost', 'score_final']
-    score_labels = ['Latência', 'Carbono', 'Custo', 'Final']
+    score_labels = ['Latency', 'Carbon', 'Cost', 'Final']
     
     modes = sorted(df_success['mode'].unique())
     
@@ -264,19 +270,16 @@ def plot_scores_by_mode(df: pd.DataFrame, output_dir: str):
         
         ax.set_xticks(range(len(labels)))
         ax.set_xticklabels(labels, fontsize=10)
-        ax.set_title(f'Score de {score_label}', fontsize=14, fontweight='bold')
+        ax.set_title(f'{score_label} Score', fontsize=14, fontweight='bold')
         ax.set_ylabel('Score (0-1)', fontsize=11)
         ax.set_ylim(0, 1.05)
         ax.grid(True, alpha=0.3, axis='y')
     
-    plt.suptitle('Distribuição de Scores por Modo Operacional',
+    plt.suptitle('Score Distribution by Operational Mode',
                  fontsize=16, fontweight='bold', y=0.995)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'scores_by_mode_violin.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'scores_by_mode_violin')
 
 
 def plot_metrics_separated(df: pd.DataFrame, output_dir: str):
@@ -289,11 +292,11 @@ def plot_metrics_separated(df: pd.DataFrame, output_dir: str):
     modes = sorted(df_success['mode'].unique())
     
     metrics_config = [
-        ('region_latency_ms', 'Latência (ms)', 'latency', False),
-        ('region_renewable_pct', 'Energia Renovável (%)', 'renewable', True),
-        ('region_carbon_intensity', 'Intensidade de Carbono (gCO2/kWh)', 'carbon', False),
-        ('region_cost_per_kwh', 'Custo de Energia ($/kWh)', 'cost', False),
-        ('score_final', 'Score Final', 'score', True)
+        ('region_latency_ms', 'Latency (ms)', 'latency', False),
+        ('region_renewable_pct', 'Renewable Energy (%)', 'renewable', True),
+        ('region_carbon_intensity', 'Carbon Intensity (gCO2/kWh)', 'carbon', False),
+        ('region_cost_per_kwh', 'Energy Cost ($/kWh)', 'cost', False),
+        ('score_final', 'Final Score', 'score', True)
     ]
     
     for metric_col, metric_name, metric_key, higher_better in metrics_config:
@@ -318,8 +321,8 @@ def plot_metrics_separated(df: pd.DataFrame, output_dir: str):
             patch.set_facecolor(color)
             patch.set_alpha(0.7)
         
-        ax1.set_title(f'Distribuição - {metric_name}', fontsize=13, fontweight='bold')
-        ax1.set_ylabel('Valor', fontsize=11)
+        ax1.set_title(f'Distribution - {metric_name}', fontsize=13, fontweight='bold')
+        ax1.set_ylabel('Value', fontsize=11)
         ax1.grid(True, alpha=0.3)
         
         # Subplot 2: Média com intervalo de confiança
@@ -348,8 +351,8 @@ def plot_metrics_separated(df: pd.DataFrame, output_dir: str):
         
         ax2.set_xticks(x_pos)
         ax2.set_xticklabels(stat_labels, fontsize=10)
-        ax2.set_title(f'Média com IC 95% - {metric_name}', fontsize=13, fontweight='bold')
-        ax2.set_ylabel('Valor Médio', fontsize=11)
+        ax2.set_title(f'Mean with 95% CI - {metric_name}', fontsize=13, fontweight='bold')
+        ax2.set_ylabel('Mean Value', fontsize=11)
         ax2.grid(True, alpha=0.3, axis='y')
         
         # Adiciona valores
@@ -360,20 +363,17 @@ def plot_metrics_separated(df: pd.DataFrame, output_dir: str):
                     ha='center', va='bottom', fontsize=9, fontweight='bold')
         
         # Indica se maior é melhor
-        direction = "↑ Maior é melhor" if higher_better else "↓ Menor é melhor"
+        direction = "↑ Higher is better" if higher_better else "↓ Lower is better"
         fig.text(0.5, 0.02, direction, ha='center', fontsize=11, 
                 style='italic', color='gray')
         
-        plt.suptitle(f'Análise de {metric_name}',
+        plt.suptitle(f'{metric_name} Analysis',
                     fontsize=15, fontweight='bold')
         plt.tight_layout(rect=[0, 0.03, 1, 0.97])
         
         # Nome do arquivo
         filename = metric_key.replace(' ', '_').lower()
-        output_path = Path(output_dir) / f'metric_{filename}_detailed.png'
-        plt.savefig(output_path)
-        print(f"   ✅ Salvo: {output_path}")
-        plt.close()
+        save_figure(output_dir, f'metric_{filename}_detailed')
 
 
 def plot_scenarios_analysis(df: pd.DataFrame, output_dir: str):
@@ -416,18 +416,15 @@ def plot_scenarios_analysis(df: pd.DataFrame, output_dir: str):
         patch.set_facecolor(color)
         patch.set_alpha(0.7)
     
-    ax.set_title('Score Final por Categoria de Cenário', fontsize=15, fontweight='bold')
-    ax.set_xlabel('Categoria do Cenário', fontsize=12)
-    ax.set_ylabel('Score Final', fontsize=12)
+    ax.set_title('Final Score by Scenario Category', fontsize=15, fontweight='bold')
+    ax.set_xlabel('Scenario Category', fontsize=12)
+    ax.set_ylabel('Final Score', fontsize=12)
     ax.set_ylim(0, 1.05)
     ax.grid(True, alpha=0.3, axis='y')
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'scenarios_by_category.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'scenarios_by_category')
 
 
 def plot_variance_sensitivity(df: pd.DataFrame, output_dir: str):
@@ -463,46 +460,43 @@ def plot_variance_sensitivity(df: pd.DataFrame, output_dir: str):
                     variance_stats['score_final_mean'] - variance_stats['score_final_std'],
                     variance_stats['score_final_mean'] + variance_stats['score_final_std'],
                     alpha=0.3, color=METRIC_COLORS['score'])
-    ax.set_title('Score Final vs Variância', fontsize=13, fontweight='bold')
-    ax.set_xlabel('Variância (%)', fontsize=11)
-    ax.set_ylabel('Score Final Médio', fontsize=11)
+    ax.set_title('Final Score vs Variance', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Variance (%)', fontsize=11)
+    ax.set_ylabel('Mean Final Score', fontsize=11)
     ax.grid(True, alpha=0.3)
     
     # Latência vs variância
     ax = axes[0, 1]
     ax.plot(variance_stats['variance'] * 100, variance_stats['region_latency_ms_mean'],
            marker='s', linewidth=2, markersize=8, color=METRIC_COLORS['latency'])
-    ax.set_title('Latência Média vs Variância', fontsize=13, fontweight='bold')
-    ax.set_xlabel('Variância (%)', fontsize=11)
-    ax.set_ylabel('Latência (ms)', fontsize=11)
+    ax.set_title('Mean Latency vs Variance', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Variance (%)', fontsize=11)
+    ax.set_ylabel('Latency (ms)', fontsize=11)
     ax.grid(True, alpha=0.3)
     
     # Renovável vs variância
     ax = axes[1, 0]
     ax.plot(variance_stats['variance'] * 100, variance_stats['region_renewable_pct_mean'],
            marker='^', linewidth=2, markersize=8, color=METRIC_COLORS['renewable'])
-    ax.set_title('Energia Renovável vs Variância', fontsize=13, fontweight='bold')
-    ax.set_xlabel('Variância (%)', fontsize=11)
-    ax.set_ylabel('Renovável (%)', fontsize=11)
+    ax.set_title('Renewable Energy vs Variance', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Variance (%)', fontsize=11)
+    ax.set_ylabel('Renewable (%)', fontsize=11)
     ax.grid(True, alpha=0.3)
     
     # Custo vs variância
     ax = axes[1, 1]
     ax.plot(variance_stats['variance'] * 100, variance_stats['region_cost_per_kwh_mean'],
            marker='d', linewidth=2, markersize=8, color=METRIC_COLORS['cost'])
-    ax.set_title('Custo Médio vs Variância', fontsize=13, fontweight='bold')
-    ax.set_xlabel('Variância (%)', fontsize=11)
-    ax.set_ylabel('Custo ($/kWh)', fontsize=11)
+    ax.set_title('Mean Cost vs Variance', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Variance (%)', fontsize=11)
+    ax.set_ylabel('Cost ($/kWh)', fontsize=11)
     ax.grid(True, alpha=0.3)
     
-    plt.suptitle('Análise de Sensibilidade à Variância',
+    plt.suptitle('Variance Sensitivity Analysis',
                 fontsize=15, fontweight='bold', y=0.995)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'sensitivity_variance.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'sensitivity_variance')
 
 
 def plot_region_selection_distribution(df: pd.DataFrame, output_dir: str):
@@ -523,8 +517,8 @@ def plot_region_selection_distribution(df: pd.DataFrame, output_dir: str):
             color=plt.cm.viridis(np.linspace(0, 1, len(region_counts))))
     ax1.set_yticks(range(len(region_counts)))
     ax1.set_yticklabels(region_counts.index, fontsize=9)
-    ax1.set_xlabel('Número de Seleções', fontsize=11)
-    ax1.set_title('Top 20 Regiões Mais Selecionadas', fontsize=13, fontweight='bold')
+    ax1.set_xlabel('Number of Selections', fontsize=11)
+    ax1.set_title('Top 20 Most Selected Regions', fontsize=13, fontweight='bold')
     ax1.invert_yaxis()
     ax1.grid(True, alpha=0.3, axis='x')
     
@@ -546,17 +540,14 @@ def plot_region_selection_distribution(df: pd.DataFrame, output_dir: str):
     # Gráfico de barras empilhadas
     pivot_data.plot(kind='barh', stacked=True, ax=ax2,
                    color=[COLORS.get(mode, '#666666') for mode in pivot_data.columns])
-    ax2.set_xlabel('Número de Seleções', fontsize=11)
-    ax2.set_title('Top 10 Regiões por Modo Operacional', fontsize=13, fontweight='bold')
-    ax2.legend(title='Modo', bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax2.set_xlabel('Number of Selections', fontsize=11)
+    ax2.set_title('Top 10 Regions by Operational Mode', fontsize=13, fontweight='bold')
+    ax2.legend(title='Mode', bbox_to_anchor=(1.05, 1), loc='upper left')
     ax2.grid(True, alpha=0.3, axis='x')
     
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'region_selection_distribution.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'region_selection_distribution')
 
 
 def plot_workload_priority_analysis(df: pd.DataFrame, output_dir: str):
@@ -577,10 +568,10 @@ def plot_workload_priority_analysis(df: pd.DataFrame, output_dir: str):
     axes = axes.flatten()
     
     metrics = [
-        ('score_final', 'Score Final', METRIC_COLORS['score']),
-        ('region_latency_ms', 'Latência (ms)', METRIC_COLORS['latency']),
-        ('region_renewable_pct', 'Renovável (%)', METRIC_COLORS['renewable']),
-        ('region_cost_per_kwh', 'Custo ($/kWh)', METRIC_COLORS['cost'])
+        ('score_final', 'Final Score', METRIC_COLORS['score']),
+        ('region_latency_ms', 'Latency (ms)', METRIC_COLORS['latency']),
+        ('region_renewable_pct', 'Renewable (%)', METRIC_COLORS['renewable']),
+        ('region_cost_per_kwh', 'Cost ($/kWh)', METRIC_COLORS['cost'])
     ]
     
     for idx, (metric_col, metric_name, color) in enumerate(metrics):
@@ -602,19 +593,16 @@ def plot_workload_priority_analysis(df: pd.DataFrame, output_dir: str):
             patch.set_facecolor(color)
             patch.set_alpha(0.7)
         
-        ax.set_title(f'{metric_name} por Prioridade', fontsize=13, fontweight='bold')
-        ax.set_xlabel('Prioridade do Workload', fontsize=11)
+        ax.set_title(f'{metric_name} by Priority', fontsize=13, fontweight='bold')
+        ax.set_xlabel('Workload Priority', fontsize=11)
         ax.set_ylabel(metric_name, fontsize=11)
         ax.grid(True, alpha=0.3, axis='y')
     
-    plt.suptitle('Análise por Prioridade de Workload',
+    plt.suptitle('Workload Priority Analysis',
                 fontsize=15, fontweight='bold', y=0.995)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'workload_priority_analysis.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'workload_priority_analysis')
 
 
 def plot_scale_analysis(df: pd.DataFrame, output_dir: str):
@@ -643,16 +631,16 @@ def plot_scale_analysis(df: pd.DataFrame, output_dir: str):
         regions_stats = regions_stats.sort_values('n_regions')
         
         ax.plot(regions_stats['n_regions'], regions_stats['score_final_mean'],
-               marker='o', linewidth=2, markersize=8, color=METRIC_COLORS['score'],
-               label='Score Final')
+            marker='o', linewidth=2, markersize=8, color=METRIC_COLORS['score'],
+            label='Final Score')
         ax.fill_between(regions_stats['n_regions'],
                        regions_stats['score_final_mean'] - regions_stats['score_final_std'],
                        regions_stats['score_final_mean'] + regions_stats['score_final_std'],
                        alpha=0.3, color=METRIC_COLORS['score'])
         
-        ax.set_title('Escalabilidade: Número de Regiões', fontsize=13, fontweight='bold')
-        ax.set_xlabel('Número de Regiões', fontsize=11)
-        ax.set_ylabel('Score Final Médio', fontsize=11)
+        ax.set_title('Scalability: Number of Regions', fontsize=13, fontweight='bold')
+        ax.set_xlabel('Number of Regions', fontsize=11)
+        ax.set_ylabel('Mean Final Score', fontsize=11)
         ax.grid(True, alpha=0.3)
         ax.legend()
     
@@ -667,27 +655,24 @@ def plot_scale_analysis(df: pd.DataFrame, output_dir: str):
         workloads_stats = workloads_stats.sort_values('n_workloads')
         
         ax.plot(workloads_stats['n_workloads'], workloads_stats['score_final_mean'],
-               marker='s', linewidth=2, markersize=8, color=METRIC_COLORS['cost'],
-               label='Score Final')
+            marker='s', linewidth=2, markersize=8, color=METRIC_COLORS['cost'],
+            label='Final Score')
         ax.fill_between(workloads_stats['n_workloads'],
                        workloads_stats['score_final_mean'] - workloads_stats['score_final_std'],
                        workloads_stats['score_final_mean'] + workloads_stats['score_final_std'],
                        alpha=0.3, color=METRIC_COLORS['cost'])
         
-        ax.set_title('Escalabilidade: Número de Workloads', fontsize=13, fontweight='bold')
-        ax.set_xlabel('Número de Workloads', fontsize=11)
-        ax.set_ylabel('Score Final Médio', fontsize=11)
+        ax.set_title('Scalability: Number of Workloads', fontsize=13, fontweight='bold')
+        ax.set_xlabel('Number of Workloads', fontsize=11)
+        ax.set_ylabel('Mean Final Score', fontsize=11)
         ax.grid(True, alpha=0.3)
         ax.legend()
     
-    plt.suptitle('Análise de Escalabilidade',
+    plt.suptitle('Scalability Analysis',
                 fontsize=15, fontweight='bold', y=0.98)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'scale_analysis.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'scale_analysis')
 
 
 def plot_correlation_heatmap(df: pd.DataFrame, output_dir: str):
@@ -717,14 +702,14 @@ def plot_correlation_heatmap(df: pd.DataFrame, output_dir: str):
     
     # Renomeia para labels mais legíveis
     label_map = {
-        'region_latency_ms': 'Latência',
-        'region_renewable_pct': 'Renovável %',
-        'region_carbon_intensity': 'Carbono',
-        'region_cost_per_kwh': 'Custo',
-        'score_latency': 'Score Lat.',
-        'score_carbon': 'Score Carb.',
-        'score_cost': 'Score Custo',
-        'score_final': 'Score Final'
+        'region_latency_ms': 'Latency',
+        'region_renewable_pct': 'Renewable %',
+        'region_carbon_intensity': 'Carbon',
+        'region_cost_per_kwh': 'Cost',
+        'score_latency': 'Latency Score',
+        'score_carbon': 'Carbon Score',
+        'score_cost': 'Cost Score',
+        'score_final': 'Final Score'
     }
     
     corr_matrix.index = [label_map.get(col, col) for col in corr_matrix.index]
@@ -737,15 +722,12 @@ def plot_correlation_heatmap(df: pd.DataFrame, output_dir: str):
                 center=0, vmin=-1, vmax=1, square=True,
                 linewidths=1, cbar_kws={"shrink": 0.8}, ax=ax)
     
-    ax.set_title('Correlação entre Métricas e Scores', 
+    ax.set_title('Correlation Between Metrics and Scores', 
                 fontsize=15, fontweight='bold', pad=20)
     
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'correlation_heatmap.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'correlation_heatmap')
 
 
 def plot_success_rate_analysis(df: pd.DataFrame, output_dir: str):
@@ -772,8 +754,8 @@ def plot_success_rate_analysis(df: pd.DataFrame, output_dir: str):
     
     ax.set_xticks(range(len(mode_success)))
     ax.set_xticklabels([mode.replace('_', '\n') for mode in mode_success['mode']], fontsize=11)
-    ax.set_ylabel('Taxa de Sucesso (%)', fontsize=12)
-    ax.set_title('Taxa de Sucesso de Alocação por Modo Operacional',
+    ax.set_ylabel('Success Rate (%)', fontsize=12)
+    ax.set_title('Allocation Success Rate by Operational Mode',
                 fontsize=15, fontweight='bold')
     ax.set_ylim(0, 105)
     ax.grid(True, alpha=0.3, axis='y')
@@ -787,10 +769,7 @@ def plot_success_rate_analysis(df: pd.DataFrame, output_dir: str):
     
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'success_rate_by_mode.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'success_rate_by_mode')
 
 
 def plot_metrics_by_region(df: pd.DataFrame, output_dir: str):
@@ -837,8 +816,8 @@ def plot_metrics_by_region(df: pd.DataFrame, output_dir: str):
     
     ax.set_yticks(range(len(region_stats_sorted)))
     ax.set_yticklabels(region_stats_sorted['best_region_id'], fontsize=9)
-    ax.set_xlabel('Latência Média (ms)', fontsize=11)
-    ax.set_title('Latência por Região (Top 20)', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Mean Latency (ms)', fontsize=11)
+    ax.set_title('Latency by Region (Top 20)', fontsize=13, fontweight='bold')
     ax.grid(True, alpha=0.3, axis='x')
     ax.invert_yaxis()
     
@@ -853,8 +832,8 @@ def plot_metrics_by_region(df: pd.DataFrame, output_dir: str):
     
     ax.set_yticks(range(len(region_stats_sorted)))
     ax.set_yticklabels(region_stats_sorted['best_region_id'], fontsize=9)
-    ax.set_xlabel('Custo Médio ($/kWh)', fontsize=11)
-    ax.set_title('Custo por Região (Top 20)', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Mean Cost ($/kWh)', fontsize=11)
+    ax.set_title('Cost by Region (Top 20)', fontsize=13, fontweight='bold')
     ax.grid(True, alpha=0.3, axis='x')
     ax.invert_yaxis()
     
@@ -869,18 +848,15 @@ def plot_metrics_by_region(df: pd.DataFrame, output_dir: str):
     
     ax.set_yticks(range(len(region_stats_sorted)))
     ax.set_yticklabels(region_stats_sorted['best_region_id'], fontsize=9)
-    ax.set_xlabel('Energia Renovável Média (%)', fontsize=11)
-    ax.set_title('Sustentabilidade por Região (Top 20)', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Mean Renewable Energy (%)', fontsize=11)
+    ax.set_title('Sustainability by Region (Top 20)', fontsize=13, fontweight='bold')
     ax.grid(True, alpha=0.3, axis='x')
     ax.invert_yaxis()
     
-    plt.suptitle('Análise de Métricas por Região', fontsize=16, fontweight='bold', y=0.98)
+    plt.suptitle('Metric Analysis by Region', fontsize=16, fontweight='bold', y=0.98)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'metrics_by_region.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'metrics_by_region')
 
 
 def plot_tradeoffs_scatter(df: pd.DataFrame, output_dir: str):
@@ -908,9 +884,9 @@ def plot_tradeoffs_scatter(df: pd.DataFrame, output_dir: str):
                   alpha=0.5, s=30, label=mode.replace('_', ' ').title(),
                   color=COLORS.get(mode, '#666666'))
     
-    ax.set_xlabel('Latência (ms)', fontsize=11)
-    ax.set_ylabel('Energia Renovável (%)', fontsize=11)
-    ax.set_title('Trade-off: Latência vs Sustentabilidade', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Latency (ms)', fontsize=11)
+    ax.set_ylabel('Renewable Energy (%)', fontsize=11)
+    ax.set_title('Trade-off: Latency vs Sustainability', fontsize=13, fontweight='bold')
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=9, loc='best')
     
@@ -923,9 +899,9 @@ def plot_tradeoffs_scatter(df: pd.DataFrame, output_dir: str):
                   alpha=0.5, s=30, label=mode.replace('_', ' ').title(),
                   color=COLORS.get(mode, '#666666'))
     
-    ax.set_xlabel('Latência (ms)', fontsize=11)
-    ax.set_ylabel('Custo ($/kWh)', fontsize=11)
-    ax.set_title('Trade-off: Latência vs Custo', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Latency (ms)', fontsize=11)
+    ax.set_ylabel('Cost ($/kWh)', fontsize=11)
+    ax.set_title('Trade-off: Latency vs Cost', fontsize=13, fontweight='bold')
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=9, loc='best')
     
@@ -938,19 +914,16 @@ def plot_tradeoffs_scatter(df: pd.DataFrame, output_dir: str):
                   alpha=0.5, s=30, label=mode.replace('_', ' ').title(),
                   color=COLORS.get(mode, '#666666'))
     
-    ax.set_xlabel('Custo ($/kWh)', fontsize=11)
-    ax.set_ylabel('Energia Renovável (%)', fontsize=11)
-    ax.set_title('Trade-off: Custo vs Sustentabilidade', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Cost ($/kWh)', fontsize=11)
+    ax.set_ylabel('Renewable Energy (%)', fontsize=11)
+    ax.set_title('Trade-off: Cost vs Sustainability', fontsize=13, fontweight='bold')
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=9, loc='best')
     
-    plt.suptitle('Análise de Trade-offs entre Métricas', fontsize=16, fontweight='bold', y=0.98)
+    plt.suptitle('Trade-off Analysis Between Metrics', fontsize=16, fontweight='bold', y=0.98)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'tradeoffs_scatter.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'tradeoffs_scatter')
 
 
 def plot_metrics_by_scenario_with_ci(df: pd.DataFrame, output_dir: str):
@@ -973,9 +946,9 @@ def plot_metrics_by_scenario_with_ci(df: pd.DataFrame, output_dir: str):
     
     # Calcula estatísticas por categoria
     metrics = [
-        ('region_latency_ms', 'Latência (ms)', 'latency', False),
-        ('region_cost_per_kwh', 'Custo ($/kWh)', 'cost', False),
-        ('region_renewable_pct', 'Energia Renovável (%)', 'renewable', True)
+        ('region_latency_ms', 'Latency (ms)', 'latency', False),
+        ('region_cost_per_kwh', 'Cost ($/kWh)', 'cost', False),
+        ('region_renewable_pct', 'Renewable Energy (%)', 'renewable', True)
     ]
     
     fig, axes = plt.subplots(1, 3, figsize=(20, 7))
@@ -1014,7 +987,7 @@ def plot_metrics_by_scenario_with_ci(df: pd.DataFrame, output_dir: str):
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=9)
         ax.set_ylabel(metric_name, fontsize=11)
-        ax.set_title(f'{metric_name} por Cenário', fontsize=13, fontweight='bold')
+        ax.set_title(f'{metric_name} by Scenario', fontsize=13, fontweight='bold')
         ax.grid(True, alpha=0.3, axis='y')
         
         # Adiciona valores
@@ -1024,14 +997,11 @@ def plot_metrics_by_scenario_with_ci(df: pd.DataFrame, output_dir: str):
                    f'{mean:.2f}',
                    ha='center', va='bottom', fontsize=8)
     
-    plt.suptitle('Distribuição de Métricas por Categoria de Cenário (IC 95%)',
+    plt.suptitle('Metric Distribution by Scenario Category (95% CI)',
                 fontsize=16, fontweight='bold', y=0.98)
     plt.tight_layout()
     
-    output_path = Path(output_dir) / 'metrics_by_scenario_ci.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'metrics_by_scenario_ci')
 
 
 def plot_doe_factorial_analysis(df: pd.DataFrame, output_dir: str):
@@ -1068,8 +1038,8 @@ def plot_doe_factorial_analysis(df: pd.DataFrame, output_dir: str):
                    yerr=mode_effects['std'], capsize=5, color=colors_list, alpha=0.7)
     ax1.set_xticks(range(len(mode_effects)))
     ax1.set_xticklabels([m.replace('_', '\n') for m in mode_effects['mode']], fontsize=9)
-    ax1.set_ylabel('Score Final Médio', fontsize=10)
-    ax1.set_title('Efeito Principal: Modo Operacional', fontsize=11, fontweight='bold')
+    ax1.set_ylabel('Mean Final Score', fontsize=10)
+    ax1.set_title('Main Effect: Operational Mode', fontsize=11, fontweight='bold')
     ax1.grid(True, alpha=0.3, axis='y')
     
     # 2. Efeito Principal: Variância
@@ -1088,9 +1058,9 @@ def plot_doe_factorial_analysis(df: pd.DataFrame, output_dir: str):
     ax2.set_xticks(range(len(variance_effects)))
     ax2.set_xticklabels([f'{v.left:.1f} to\n{v.right:.1f}' for v in variance_effects['variance_bin']], 
                         fontsize=8)
-    ax2.set_ylabel('Score Final Médio', fontsize=10)
-    ax2.set_xlabel('Faixa de Variância', fontsize=10)
-    ax2.set_title('Efeito Principal: Variância', fontsize=11, fontweight='bold')
+    ax2.set_ylabel('Mean Final Score', fontsize=10)
+    ax2.set_xlabel('Variance Range', fontsize=10)
+    ax2.set_title('Main Effect: Variance', fontsize=11, fontweight='bold')
     ax2.grid(True, alpha=0.3)
     
     # 3. Efeito Principal: N Regions (se disponível)
@@ -1105,13 +1075,13 @@ def plot_doe_factorial_analysis(df: pd.DataFrame, output_dir: str):
                         region_effects['mean'] - region_effects['std'],
                         region_effects['mean'] + region_effects['std'],
                         alpha=0.3, color=METRIC_COLORS['cost'])
-        ax3.set_xlabel('Número de Regiões', fontsize=10)
-        ax3.set_ylabel('Score Final Médio', fontsize=10)
-        ax3.set_title('Efeito Principal: Número de Regiões', fontsize=11, fontweight='bold')
+        ax3.set_xlabel('Number of Regions', fontsize=10)
+        ax3.set_ylabel('Mean Final Score', fontsize=10)
+        ax3.set_title('Main Effect: Number of Regions', fontsize=11, fontweight='bold')
         ax3.grid(True, alpha=0.3)
     else:
         ax3.text(0.5, 0.5, 'Dados não disponíveis', ha='center', va='center', fontsize=10)
-        ax3.set_title('Efeito Principal: N Regiões', fontsize=11, fontweight='bold')
+        ax3.set_title('Main Effect: N Regions', fontsize=11, fontweight='bold')
     
     # 4. Interação: Modo × Variância
     ax4 = fig.add_subplot(gs[1, :2])
@@ -1127,9 +1097,9 @@ def plot_doe_factorial_analysis(df: pd.DataFrame, output_dir: str):
     
     ax4.set_xticks(range(len(pivot_interaction)))
     ax4.set_xticklabels([f'{v.left:.1f}-{v.right:.1f}' for v in pivot_interaction.index], fontsize=9)
-    ax4.set_xlabel('Faixa de Variância', fontsize=10)
-    ax4.set_ylabel('Score Final Médio', fontsize=10)
-    ax4.set_title('Interação: Modo × Variância', fontsize=11, fontweight='bold')
+    ax4.set_xlabel('Variance Range', fontsize=10)
+    ax4.set_ylabel('Mean Final Score', fontsize=10)
+    ax4.set_title('Interaction: Mode × Variance', fontsize=11, fontweight='bold')
     ax4.legend(fontsize=9, loc='best')
     ax4.grid(True, alpha=0.3)
     
@@ -1141,12 +1111,12 @@ def plot_doe_factorial_analysis(df: pd.DataFrame, output_dir: str):
     
     sns.heatmap(heatmap_data, annot=True, fmt='.3f', cmap='RdYlGn',
                 center=heatmap_data.mean().mean(), vmin=heatmap_data.min().min(),
-                vmax=heatmap_data.max().max(), cbar_kws={'label': 'Score Final'},
+                vmax=heatmap_data.max().max(), cbar_kws={'label': 'Final Score'},
                 ax=ax5, linewidths=0.5)
     
-    ax5.set_xlabel('Faixa de Variância', fontsize=10)
-    ax5.set_ylabel('Modo Operacional', fontsize=10)
-    ax5.set_title('Heatmap: Modo × Variância', fontsize=11, fontweight='bold')
+    ax5.set_xlabel('Variance Range', fontsize=10)
+    ax5.set_ylabel('Operational Mode', fontsize=10)
+    ax5.set_title('Heatmap: Mode × Variance', fontsize=11, fontweight='bold')
     ax5.set_xticklabels([f'{v.left:.1f}-{v.right:.1f}' for v in pivot_interaction.index],
                         rotation=45, ha='right', fontsize=8)
     ax5.set_yticklabels([m.replace('_', ' ').title() for m in heatmap_data.index],
@@ -1200,13 +1170,13 @@ def plot_doe_factorial_analysis(df: pd.DataFrame, output_dir: str):
                    color=plt.cm.viridis(np.linspace(0, 1, len(effects_pct))), alpha=0.7)
     ax6.set_xticks(x_pos)
     ax6.set_xticklabels([e[0] for e in effects_pct], fontsize=10)
-    ax6.set_ylabel('Importância (%)', fontsize=10)
-    ax6.set_title('Diagrama de Pareto: Importância dos Fatores', fontsize=11, fontweight='bold')
+    ax6.set_ylabel('Importance (%)', fontsize=10)
+    ax6.set_title('Pareto Chart: Factor Importance', fontsize=11, fontweight='bold')
     
     # Adiciona linha acumulada
     ax6_twin = ax6.twinx()
     ax6_twin.plot(x_pos, cumulative, color='red', marker='D', linewidth=2, markersize=6)
-    ax6_twin.set_ylabel('Efeito Acumulado (%)', fontsize=10, color='red')
+    ax6_twin.set_ylabel('Cumulative Effect (%)', fontsize=10, color='red')
     ax6_twin.tick_params(axis='y', labelcolor='red')
     ax6_twin.set_ylim(0, 105)
     
@@ -1223,16 +1193,13 @@ def plot_doe_factorial_analysis(df: pd.DataFrame, output_dir: str):
     
     ax6.grid(True, alpha=0.3, axis='y')
     
-    plt.suptitle('Análise DoE (Design of Experiments) / Análise Fatorial',
+    plt.suptitle('DoE Analysis (Design of Experiments) / Factorial Analysis',
                 fontsize=16, fontweight='bold', y=0.995)
     
-    output_path = Path(output_dir) / 'doe_factorial_analysis.png'
-    plt.savefig(output_path)
-    print(f"   ✅ Salvo: {output_path}")
-    plt.close()
+    save_figure(output_dir, 'doe_factorial_analysis')
 
 
-def generate_all_visualizations(csv_file: str, output_dir: str = "results/visualizations"):
+def generate_all_visualizations(csv_file: str, output_dir: str = DEFAULT_OUTPUT_DIR):
     """
     Gera todas as visualizações
     
@@ -1275,7 +1242,7 @@ def generate_all_visualizations(csv_file: str, output_dir: str = "results/visual
     print("="*80)
     
     # Lista arquivos gerados
-    generated_files = list(Path(output_dir).glob("*.png"))
+    generated_files = list(Path(output_dir).glob(f"*.{FIGURE_FORMAT}"))
     print(f"\n📊 Total de gráficos gerados: {len(generated_files)}")
     for file_path in sorted(generated_files):
         print(f"   • {file_path.name}")
@@ -1293,7 +1260,7 @@ def main():
         sys.exit(1)
     
     csv_file = sys.argv[1]
-    output_dir = sys.argv[2] if len(sys.argv) > 2 else "results/visualizations"
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_OUTPUT_DIR
     
     try:
         generate_all_visualizations(csv_file, output_dir)

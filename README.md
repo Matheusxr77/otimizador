@@ -139,7 +139,7 @@ python analysis/visualizations.py results/raw_results.csv
 Ou especifique um diretório de saída customizado:
 
 ```bash
-python analysis/visualizations.py results/raw_results.csv results/visualizations
+python analysis/visualizations.py results/raw_results.csv docs/img
 ```
 
 Este comando gera automaticamente todos os tipos de gráficos:
@@ -158,6 +158,6 @@ Este comando gera automaticamente todos os tipos de gráficos:
 - **Distribuição por Cenário com IC**: Latência, custo e sustentabilidade por categoria de cenário com intervalos de confiança (95%)
 - **Análise DoE/Fatorial**: Design of Experiments completo com efeitos principais, interações e diagrama de Pareto
 
-Todos os gráficos são salvos em formato PNG de alta resolução (300 DPI).
+Todos os gráficos são salvos em formato SVG vetorial.
 
 📖 **Para descrição detalhada de cada gráfico, consulte**: [analysis/VISUALIZATIONS_GUIDE.md](analysis/VISUALIZATIONS_GUIDE.md)
